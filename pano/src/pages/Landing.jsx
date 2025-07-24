@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Upload, Image, Zap, Download, ArrowRight, Check, Camera, Sparkles, Globe, Users, Moon, Sun, ImageIcon } from 'lucide-react';
-
+import * as htmlToImage from 'html-to-image';
+import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image';
 function App() {
   const [uploadedImages, setUploadedImages] = useState([]);
   const [dragActive, setDragActive] = useState(false);
@@ -11,6 +12,7 @@ function App() {
   const [preview2, setPreview2] = useState(null);
   const [resultImage, setResultImage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const domEl = useRef(null);
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
@@ -123,6 +125,15 @@ function App() {
     const file = e.target.files[0];
     setImage2(file);
     setPreview2(URL.createObjectURL(file));
+  };
+
+  const downloadImage = async () => {
+    const dataUrl = await htmlToImage.toPng(domEl.current);
+    // download image
+    const link = document.createElement('a');
+    link.download = 'html-to-img.png';
+    link.href = dataUrl;
+    link.click();
   };
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode
@@ -293,130 +304,10 @@ function App() {
         ? 'bg-gradient-to-br from-gray-900 to-blue-900'
         : 'bg-gradient-to-br from-blue-50 to-purple-50'
         }`}>
-        {/* <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className={`text-4xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              Ready to Create Your Panorama?
-            </h2>
-            <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Upload your images and let our AI work its magic
-            </p>
-          </div>
-
-          <div className={`rounded-2xl shadow-2xl p-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            <div
-              className={`border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${dragActive
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                  : darkMode
-                    ? 'border-gray-600 hover:border-blue-400'
-                    : 'border-gray-300 hover:border-blue-400'
-                }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              <Upload className={`w-16 h-16 mx-auto mb-4 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
-              <h3 className={`text-xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Drop your images here
-              </h3>
-              <p className={`mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                or click to select files (minimum 2 images required)
-              </p>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-                id="file-upload"
-              />
-              <label
-                htmlFor="file-upload"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-300 inline-block"
-              >
-                Choose Images
-              </label>
-            </div>
-
-            {uploadedImages.length > 0 && (
-              <div className="mt-8">
-                <h4 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Uploaded Images ({uploadedImages.length})
-                </h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  {uploadedImages.map((file, index) => (
-                    <div key={index} className="relative group">
-                      <div className={`aspect-square rounded-lg overflow-hidden ${darkMode ? 'bg-gray-700' : 'bg-gray-100'
-                        }`}>
-                        <img
-                          src={image1}
-                          alt={file.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <img
-                          src={image1}
-                          alt={file.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <button
-                        onClick={() => removeImage(index)}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                  {image1 && <img src={image1} alt="Preview 1" />}
-                  {image2 && <img src={image2} alt="Preview 2" />}
-                </div>
-
-                {uploadedImages.length >= 2 && (
-                  <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl text-lg font-semibold hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                    Create Panorama
-                    <Sparkles className="w-5 h-5 ml-2 inline" />
-                  </button>
-                )}
-              </div>
-            )}
-            <button
-              onClick={handleSubmit}
-
-            >
-              Stitch Images
-            </button>
-          </div>
-        </div> */}
-        {/* <div>
-          <label>Image 1:</label>
-          <input type="file" accept="image/*" onChange={handleImage1Change} />
-          {preview1 && <img src={preview1} alt="Preview 1" />}
-        </div>
-
-        <div>
-          <label>Image 2:</label>
-          <input type="file" accept="image/*" onChange={handleImage2Change} />
-          {preview2 && <img src={preview2} alt="Preview 2" />}
-        </div>
-
-
-        <button
-          onClick={handleSubmit}
-
-        >
-          Stitch Images
-        </button>
-
-        {resultImage && (
-          <div>
-            <h3>Stitched Image:</h3>
-            <img src={resultImage} alt="Stitched Result" />
-          </div>
-        )} */}
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
+        
+        <div className="grid md:grid-cols-2 gap-8 mb-12 items-center justify-center">
           {/* Image 1 Upload */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className={`bg-white max-w-xl items-center rounded-2xl shadow-xl border border-gray-100 overflow-hidden`}>
             <div className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Upload className="w-5 h-5 mr-2 text-indigo-600" />
@@ -452,7 +343,7 @@ function App() {
           </div>
 
           {/* Image 2 Upload */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-2xl max-w-xl shadow-xl border border-gray-100 overflow-hidden">
             <div className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Upload className="w-5 h-5 mr-2 text-purple-600" />
@@ -526,6 +417,7 @@ function App() {
                   </h3>
                   <button
                     className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200"
+                    onClick={downloadImage}
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Download
@@ -535,6 +427,7 @@ function App() {
                 <div className="rounded-xl overflow-hidden shadow-lg">
                   <img
                     src={resultImage}
+                    ref={domEl}
                     alt="Stitched Result"
                     className="w-full h-auto max-h-96 object-contain bg-gray-50"
                   />
