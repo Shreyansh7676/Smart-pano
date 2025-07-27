@@ -216,7 +216,7 @@ function App() {
           <section className="overflow-hidden relative z-10 min-h-screen flex items-center">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center">
-                <div className={`inline-flex items-center bg-pink-900/50 text-gray-300 space-x-2 px-4 py-2 rounded-full text-sm font-medium mb-4`}>
+                <div className={`inline-flex items-center bg-pink-900/50 text-gray-300 space-x-2 px-4 py-2 rounded-full text-sm font-medium font-manrope mb-4`}>
                   <Sparkles className="w-4 h-4" />
                   <span>AI-Powered Panorama Creation</span>
                 </div>
