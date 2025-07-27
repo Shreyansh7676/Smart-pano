@@ -4,7 +4,7 @@ import * as htmlToImage from 'html-to-image';
 import DarkVeil from '../components/DarkVeil.jsx';
 import SplitText from '../components/SplitTest.jsx';
 import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image';
-import  AnimatedContent  from '../components/AnimatedContent.jsx';
+import AnimatedContent from '../components/AnimatedContent.jsx';
 
 
 
@@ -152,31 +152,41 @@ function App() {
         </div>
 
         {/* Navigation positioned above background */}
-        <div className='flex items-center justify-center max-w-4xl relative z-50 mx-auto pt-10'>
-          <nav className={`backdrop-blur-sm flex justify-between border px-8 border-white rounded-4xl z-50 transition-colors duration-300 bg-neutral-600/40`}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between gap-8 h-16">
-                <div className="flex items-center space-x-2">
-                  <div className="w-10 h-10 bg-transparent rounded-xl flex items-center justify-center">
-                    <Camera className="w-6 h-6 text-white" />
-                  </div>
-                  <span className="text-2xl font-bold bg-white bg-clip-text text-transparent">
-                    SmartPano
-                  </span>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="hidden md:flex items-center space-x-8">
-                    <a href="#features" className={`transition-colors text-gray-300 hover:text-pink-500`}>Features</a>
-                    <a href="#how-it-works" className={`transition-colors text-gray-300 hover:text-pink-500`}>How It Works</a>
-                    <a href="#upload" className="bg-transparent rounded-4xl text-white py-2 hover:text-pink-500 transition-all duration-300">
-                      Get Started
-                    </a>
-                  </div>
-                </div>
-              </div>
+        
+        
+        <nav className="fixed top-6 left-1/2 transform -translate-x-1/2 w-1/2 z-10 bg-black/40 backdrop-blur-lg rounded-full shadow-lg border border-gray-200/50">
+          <div className="flex items-center justify-between px-6 py-3">
+            {/* Logo/Brand */}
+            <div className="flex items-center space-x-2">
+              <a href="#" className="w-8 h-8  rounded-full flex items-center justify-center">
+                 <Camera className="w-7 h-7 text-white" />
+              </a>
+              <span className="font-semibold text-white text-2xl">SmartPano</span>
             </div>
-          </nav>
-        </div>
+
+            {/* Navigation Links */}
+            <div className="hidden md:flex items-end space-x-6">
+              <a href="#features" className="text-gray-300 hover:text-pink-600 transition-colors font-bold">
+                Features
+              </a>
+              <a href="#how-it-works" className="text-gray-300 hover:text-pink-600 transition-colors font-bold">
+                How It Works
+              </a>
+            </div>
+
+            {/* CTA Button */}
+            <a href='#upload' className=" text-white px-4 py-2 rounded-full hover:bg-pink-700 transition-colors font-bold">
+              Get Started
+            </a>
+
+            {/* Mobile Menu Button */}
+            <button className="md:hidden p-2">
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+        </nav>
 
         {/* Content positioned relatively to appear above background */}
         <AnimatedContent
@@ -242,7 +252,7 @@ function App() {
                     Start Creating Now
                     <ArrowRight className="w-5 h-5 ml-2 inline" />
                   </a>
-                  <button className={`border-2 px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 border-gray-600 text-gray-300 hover:border-blue-400 hover:text-blue-400`}>
+                  <button className={`border-2 px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 border-gray-600 text-gray-300 hover:border-pink-700 hover:text-pink-600`}>
                     See Examples
                   </button>
                 </div>
@@ -324,7 +334,7 @@ function App() {
 
       {/* Upload Section */}
       <section id="upload" className={`py-20 bg-neutral-950 flex flex-col items-center justify-center`}>
-           <h1 className='text-white text-center p-8 text-xl lg:text-4xl font-bold'> Upload your images below to get started</h1>
+        <h1 className='text-white text-center p-8 text-xl lg:text-4xl font-bold'> Upload your images below to get started</h1>
         <div className="flex flex-col lg:flex-row gap-8 mb-12 items-center justify-center max-w-7xl mx-auto px-4">
           {/* Image 1 Upload */}
           <div className={`bg-neutral-950 w-full max-w-2xl items-center rounded-2xl shadow-xl border border-pink-700 overflow-hidden`}>
