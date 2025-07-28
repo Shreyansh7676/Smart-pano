@@ -6,6 +6,7 @@ import SplitText from '../components/SplitTest.jsx';
 import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image';
 import AnimatedContent from '../components/AnimatedContent.jsx';
 import WhyChoose from './WhyChoose.jsx';
+import HowItWorks from './HowItWorks.jsx';
 
 
 
@@ -170,8 +171,6 @@ function App() {
         </div>
 
         {/* Navigation positioned above background */}
-
-
         <nav className="fixed top-6 left-1/2 transform -translate-x-1/2 w-1/2 z-10 bg-black/40 backdrop-blur-lg rounded-full shadow-lg border border-gray-200/50">
           <div className="flex items-center justify-between px-6 py-3">
             {/* Logo/Brand */}
@@ -230,7 +229,6 @@ function App() {
           delay={0}
 
         >
-
           <section className="overflow-hidden relative z-10 min-h-screen flex items-center">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center">
@@ -245,19 +243,6 @@ function App() {
                   </span>
                   <span className="block">Stunning Panoramas</span>
                 </h1>
-                {/* <SplitText
-                text="Transform Your"
-                className="text-center text-5xl md:text-7xl font-bold text-white mb-6"
-                delay={100}
-                duration={0.1}
-                ease="power3.out"
-                splitType="chars"
-                from={{ opacity: 0, y: 40 }}
-                to={{ opacity: 1, y: 0 }}
-                threshold={0.1}
-                rootMargin="-100px"
-                textAlign="center"
-              /> */}
                 <p className={`text-xl mb-12 max-w-3xl mx-auto leading-relaxed text-gray-300`}>
                   Upload multiple images and watch as our advanced AI seamlessly stitches them together
                   into breathtaking panoramic masterpieces. No technical skills required.
@@ -282,124 +267,16 @@ function App() {
 
       </div>
 
-
-
-
       {/* Features Section */}
       <WhyChoose />
 
       {/* How It Works Section */}
-      <section id="how-it-works" className={`py-20 bg-black `}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className={`text-4xl font-bold mb-4 text-white`}>
-              How It Works
-            </h2>
-            <p className={`text-xl max-w-3xl mx-auto text-gray-300`}>
-              Create stunning panoramas in just three simple steps
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {steps.map((step, index) => (
-              <div key={index} className="relative text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-pink-600 to-pink-900 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-white font-bold text-lg">{step.step}</span>
-                </div>
-                <h3 className={`text-xl font-semibold mb-3 text-white `}>
-                  {step.title}
-                </h3>
-                <p className={`leading-relaxed text-gray-300`}>
-                  {step.description}
-                </p>
-                {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-8 left-1/2 transform translate-x-8 w-full">
-                    <ArrowRight className={`w-6 h-6 mx-auto text-gray-600 `} />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <HowItWorks />
 
       {/* Upload Section */}
       <section id="upload" className={`py-20 bg-neutral-950 flex flex-col items-center justify-center`}>
         <h1 className='text-white text-center p-8 text-xl lg:text-4xl font-bold'> Upload your images below to get started</h1>
-        {/* <div className="flex flex-col lg:flex-row gap-8 mb-12 items-center justify-center max-w-7xl mx-auto px-4"> */}
-          {/* Image 1 Upload */}
-          {/* <div className={`bg-neutral-950 w-full max-w-2xl items-center rounded-2xl shadow-xl border border-pink-700 overflow-hidden`}>
-            <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-300 mb-4 flex items-center">
-                <Upload className="w-5 h-5 mr-2 text-pink-600" />
-                First Image
-              </h3>
-
-              <div className="relative">
-                <input
-                  type="file" accept="image/*" onChange={handleImage1Change}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                  id="image1-input"
-                />
-                <label
-                  htmlFor="image1-input"
-                  className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-pink-600 hover:bg-indigo-50 transition-all duration-300 group"
-                >
-                  {preview1 ? (
-                    <img
-                      src={preview1}
-                      alt="Preview 1"
-                      className="w-full h-full object-cover rounded-xl"
-                    />
-                  ) : (
-                    <div className="text-center">
-                      <Upload className="w-12 h-12 text-pink-700 group-hover:text-pink-600 mb-4 mx-auto transition-colors" />
-                      <p className="text-gray-400 font-medium mb-2">Drop your image here</p>
-                      <p className="text-sm text-gray-400">PNG, JPG, GIF up to 10MB</p>
-                    </div>
-                  )}
-                </label>
-              </div>
-            </div>
-          </div> */}
-
-          {/* Image 2 Upload */}
-          {/* <div className="bg-neutral-950 rounded-2xl w-full max-w-2xl shadow-xl border border-pink-700 overflow-hidden">
-            <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-300 mb-4 flex items-center">
-                <Upload className="w-5 h-5 mr-2 text-pink-700" />
-                Second Image
-              </h3>
-
-              <div className="relative">
-                <input
-                  type="file" accept="image/*" onChange={handleImage2Change}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                  id="image2-input"
-                />
-                <label
-                  htmlFor="image2-input"
-                  className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-pink-700 hover:bg-purple-50 transition-all duration-300 group"
-                >
-                  {preview2 ? (
-                    <img
-                      src={preview2}
-                      alt="Preview 2"
-                      className="w-full h-full object-cover rounded-xl"
-                    />
-                  ) : (
-                    <div className="text-center">
-                      <Upload className="w-12 h-12 text-pink-700 group-hover:text-pink-700 mb-4 mx-auto transition-colors" />
-                      <p className="text-gray-400 font-medium mb-2">Drop your image here</p>
-                      <p className="text-sm text-gray-400">PNG, JPG, GIF up to 10MB</p>
-                    </div>
-                  )}
-                </label>
-              </div>
-            </div>
-          </div>
-
-        </div> */}
+        
         <div className="bg-neutral-900 min-h-screen flex items-center justify-center font-sans">
              <div className="flex flex-col lg:flex-row gap-8 mb-12 items-start justify-center max-w-7xl mx-auto p-4">
                 <ImageUpload 
