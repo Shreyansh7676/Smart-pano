@@ -1,10 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { Upload, Image, Zap, Download, ArrowRight, Check, Camera, Sparkles, Globe, Users, Moon, Sun, ImageIcon } from 'lucide-react';
 import * as htmlToImage from 'html-to-image';
 import DarkVeil from '../components/DarkVeil.jsx';
 import SplitText from '../components/SplitTest.jsx';
 import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image';
 import AnimatedContent from '../components/AnimatedContent.jsx';
+import WhyChoose from './WhyChoose.jsx';
 
 
 
@@ -14,8 +15,8 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [image1, setImage1] = useState(null);
   const [image2, setImage2] = useState(null);
-  const [preview1, setPreview1] = useState(null);
-  const [preview2, setPreview2] = useState(null);
+  const preview1 = image1 ? URL.createObjectURL(image1) : null;
+  const preview2 = image2 ? URL.createObjectURL(image2) : null;
   const [resultImage, setResultImage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const domEl = useRef(null);
@@ -44,6 +45,48 @@ function App() {
     setUploadedImages(prev => [...prev, ...files]);
   };
 
+  const ImageUpload = React.memo(({ id, title, preview, onImageChange }) => {
+    console.log(`Rendering ImageUpload for: ${title}`); // This will show when the component re-renders
+    return (
+      <div className="bg-neutral-950 w-full max-w-2xl rounded-2xl shadow-xl border border-pink-700 overflow-hidden">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-300 mb-4 flex items-center">
+            <Upload className="w-5 h-5 mr-2 text-pink-600" />
+            {title}
+          </h3>
+          <div className="relative">
+            {/* The input element calls the passed-in change handler */}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={onImageChange}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              id={id}
+            />
+            <label
+              htmlFor={id}
+              className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-pink-600 hover:bg-neutral-800/50 transition-all duration-300 group"
+            >
+              {preview ? (
+                <img
+                  src={preview}
+                  alt={`${title} Preview`}
+                  className="w-full h-full object-cover rounded-xl"
+                />
+              ) : (
+                <div className="text-center">
+                  <Upload className="w-12 h-12 text-pink-700 group-hover:text-pink-600 mb-4 mx-auto transition-colors" />
+                  <p className="text-gray-400 font-medium mb-2">Drop your image here</p>
+                  <p className="text-sm text-gray-400">PNG, JPG, GIF up to 10MB</p>
+                </div>
+              )}
+            </label>
+          </div>
+        </div>
+      </div>
+    );
+  });
+
   const handleFileSelect = (e) => {
     const files = e.target.files;
     if (files.length !== 2) {
@@ -58,44 +101,9 @@ function App() {
     setUploadedImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const features = [
-    {
-      icon: <Upload className="w-8 h-8" />,
-      title: "Easy Upload",
-      description: "Simply drag and drop or select multiple images from your device"
-    },
-    {
-      icon: <Zap className="w-8 h-8" />,
-      title: "AI-Powered Stitching",
-      description: "Advanced algorithms automatically align and blend your images seamlessly"
-    },
-    {
-      icon: <Download className="w-8 h-8" />,
-      title: "High Quality Output",
-      description: "Get professional-grade panoramic images in high resolution"
-    }
-  ];
-
-  const steps = [
-    {
-      step: "01",
-      title: "Upload Images",
-      description: "Select 2 or more overlapping images from your collection"
-    },
-    {
-      step: "02",
-      title: "AI Processing",
-      description: "Our smart algorithm analyzes and aligns your images automatically"
-    },
-    {
-      step: "03",
-      title: "Download Result",
-      description: "Get your stunning panoramic image ready for sharing"
-    }
+  
 
 
-
-  ];
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
@@ -119,19 +127,29 @@ function App() {
       alert("Image stitching failed. See console for details.");
     }
   }
+  
 
+  const handleImage1Change = useCallback((e) => {
+        if (e.target.files && e.target.files[0]) {
+            setImage1(e.target.files[0]);
+        }
+    }, []);
 
-  const handleImage1Change = (e) => {
-    const file = e.target.files[0];
-    setImage1(file);
-    setPreview1(URL.createObjectURL(file));
-  };
-
-  const handleImage2Change = (e) => {
-    const file = e.target.files[0];
-    setImage2(file);
-    setPreview2(URL.createObjectURL(file));
-  };
+    const handleImage2Change = useCallback((e) => {
+        if (e.target.files && e.target.files[0]) {
+            setImage2(e.target.files[0]);
+        }
+    }, []);
+    
+    // This `useEffect` hook is crucial for performance and memory management.
+    // It cleans up the object URLs created by `URL.createObjectURL` when the
+    // component unmounts or the image changes, preventing memory leaks.
+    useEffect(() => {
+        return () => {
+            if (preview1) URL.revokeObjectURL(preview1);
+            if (preview2) URL.revokeObjectURL(preview2);
+        };
+    }, [preview1, preview2]);
 
   const downloadImage = async () => {
     const dataUrl = await htmlToImage.toPng(domEl.current);
@@ -152,14 +170,14 @@ function App() {
         </div>
 
         {/* Navigation positioned above background */}
-        
-        
+
+
         <nav className="fixed top-6 left-1/2 transform -translate-x-1/2 w-1/2 z-10 bg-black/40 backdrop-blur-lg rounded-full shadow-lg border border-gray-200/50">
           <div className="flex items-center justify-between px-6 py-3">
             {/* Logo/Brand */}
             <div className="flex items-center space-x-2">
               <a href="#" className="w-8 h-8  rounded-full flex items-center justify-center">
-                 <Camera className="w-7 h-7 text-white" />
+                <Camera className="w-7 h-7 text-white" />
               </a>
               <span className="font-semibold text-white text-2xl">SmartPano</span>
             </div>
@@ -268,34 +286,7 @@ function App() {
 
 
       {/* Features Section */}
-      <section id="features" className={`py-20 bg-neutral-950`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className={`text-4xl font-bold mb-4 text-white`}>
-              Why Choose SmartPano?
-            </h2>
-            <p className={`text-xl max-w-3xl mx-auto text-gray-300`}>
-              Experience the future of panoramic photography with our cutting-edge features
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <div key={index} className={`rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-pink-900  bg-neutral-950 transform hover:scale-105 `}>
-                <div className={`mb-4 text-pink-700 `}>
-                  {feature.icon}
-                </div>
-                <h3 className={`text-xl font-semibold mb-3 text-white `}>
-                  {feature.title}
-                </h3>
-                <p className={`leading-relaxed text-gray-300 `}>
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <WhyChoose />
 
       {/* How It Works Section */}
       <section id="how-it-works" className={`py-20 bg-black `}>
@@ -335,9 +326,9 @@ function App() {
       {/* Upload Section */}
       <section id="upload" className={`py-20 bg-neutral-950 flex flex-col items-center justify-center`}>
         <h1 className='text-white text-center p-8 text-xl lg:text-4xl font-bold'> Upload your images below to get started</h1>
-        <div className="flex flex-col lg:flex-row gap-8 mb-12 items-center justify-center max-w-7xl mx-auto px-4">
+        {/* <div className="flex flex-col lg:flex-row gap-8 mb-12 items-center justify-center max-w-7xl mx-auto px-4"> */}
           {/* Image 1 Upload */}
-          <div className={`bg-neutral-950 w-full max-w-2xl items-center rounded-2xl shadow-xl border border-pink-700 overflow-hidden`}>
+          {/* <div className={`bg-neutral-950 w-full max-w-2xl items-center rounded-2xl shadow-xl border border-pink-700 overflow-hidden`}>
             <div className="p-6">
               <h3 className="text-lg font-semibold text-gray-300 mb-4 flex items-center">
                 <Upload className="w-5 h-5 mr-2 text-pink-600" />
@@ -370,10 +361,10 @@ function App() {
                 </label>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Image 2 Upload */}
-          <div className="bg-neutral-950 rounded-2xl w-full max-w-2xl shadow-xl border border-pink-700 overflow-hidden">
+          {/* <div className="bg-neutral-950 rounded-2xl w-full max-w-2xl shadow-xl border border-pink-700 overflow-hidden">
             <div className="p-6">
               <h3 className="text-lg font-semibold text-gray-300 mb-4 flex items-center">
                 <Upload className="w-5 h-5 mr-2 text-pink-700" />
@@ -408,8 +399,23 @@ function App() {
             </div>
           </div>
 
+        </div> */}
+        <div className="bg-neutral-900 min-h-screen flex items-center justify-center font-sans">
+             <div className="flex flex-col lg:flex-row gap-8 mb-12 items-start justify-center max-w-7xl mx-auto p-4">
+                <ImageUpload 
+                    id="image1-input"
+                    title="First Image"
+                    preview={preview1}
+                    onImageChange={handleImage1Change}
+                />
+                <ImageUpload
+                    id="image2-input"
+                    title="Second Image"
+                    preview={preview2}
+                    onImageChange={handleImage2Change}
+                />
+            </div>
         </div>
-
         {/* Stitch Button */}
         <div className="text-center mb-12">
           <button
@@ -438,15 +444,15 @@ function App() {
         </div>
         <div className='flex items-center justify-center'>
           {resultImage && (
-            <div className="bg-neutral-950 rounded-2xl shadow-xl border border-gray-100 overflow-hidden animate-fade-in">
+            <div className="bg-neutral-900 rounded-2xl shadow-xl border border-pink-700 overflow-hidden animate-fade-in">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 flex items-center">
-                    <ImageIcon className="w-6 h-6 mr-3 text-green-600" />
+                  <h3 className="text-2xl font-bold text-white flex items-center">
+                    <ImageIcon className="w-6 h-6 mr-3 text-pink-600" />
                     Stitched Result
                   </h3>
                   <button
-                    className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200"
+                    className="inline-flex items-center px-4 py-2 bg-pink-600 text-white font-medium rounded-lg hover:bg-pink-700 transition-colors duration-200"
                     onClick={downloadImage}
                   >
                     <Download className="w-4 h-4 mr-2" />
