@@ -1,9 +1,33 @@
 import React from 'react'
+import AnimatedContent from '../components/AnimatedContent'
 import { Check } from 'lucide-react'
 const Benefits = () => {
     return (
         <div>
+
+
             <section className={`py-20 bg-black`}>
+                <AnimatedContent
+
+                    distance={100}
+
+                    direction="vertical"
+
+                    reverse={false}
+
+                    duration={1.6}
+
+                    ease="power3.out"
+
+                    initialOpacity={0}
+
+                    animateOpacity
+
+                    scale={1.0}
+
+                    threshold={0.2}
+
+                    delay={0}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <div>
@@ -52,8 +76,9 @@ const Benefits = () => {
                         </div>
                     </div>
                 </div>
-            </section>
-        </div>
+            </AnimatedContent>
+        </section>
+        </div >
     )
 }
 

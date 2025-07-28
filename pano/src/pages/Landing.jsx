@@ -104,9 +104,6 @@ function App() {
     setUploadedImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
@@ -130,29 +127,28 @@ function App() {
       alert("Image stitching failed. See console for details.");
     }
   }
-  
 
   const handleImage1Change = useCallback((e) => {
-        if (e.target.files && e.target.files[0]) {
-            setImage1(e.target.files[0]);
-        }
-    }, []);
+    if (e.target.files && e.target.files[0]) {
+      setImage1(e.target.files[0]);
+    }
+  }, []);
 
-    const handleImage2Change = useCallback((e) => {
-        if (e.target.files && e.target.files[0]) {
-            setImage2(e.target.files[0]);
-        }
-    }, []);
-    
-    // This `useEffect` hook is crucial for performance and memory management.
-    // It cleans up the object URLs created by `URL.createObjectURL` when the
-    // component unmounts or the image changes, preventing memory leaks.
-    useEffect(() => {
-        return () => {
-            if (preview1) URL.revokeObjectURL(preview1);
-            if (preview2) URL.revokeObjectURL(preview2);
-        };
-    }, [preview1, preview2]);
+  const handleImage2Change = useCallback((e) => {
+    if (e.target.files && e.target.files[0]) {
+      setImage2(e.target.files[0]);
+    }
+  }, []);
+
+  // This `useEffect` hook is crucial for performance and memory management.
+  // It cleans up the object URLs created by `URL.createObjectURL` when the
+  // component unmounts or the image changes, preventing memory leaks.
+  useEffect(() => {
+    return () => {
+      if (preview1) URL.revokeObjectURL(preview1);
+      if (preview2) URL.revokeObjectURL(preview2);
+    };
+  }, [preview1, preview2]);
 
   const downloadImage = async () => {
     const dataUrl = await htmlToImage.toPng(domEl.current);
@@ -216,7 +212,7 @@ function App() {
 
           reverse={false}
 
-          duration={1.2}
+          duration={1.6}
 
           ease="power3.out"
 
@@ -226,7 +222,7 @@ function App() {
 
           scale={1.0}
 
-          threshold={0.1}
+          threshold={0.2}
 
           delay={0}
 
@@ -278,22 +274,22 @@ function App() {
       {/* Upload Section */}
       <section id="upload" className={`py-20 bg-neutral-950 flex flex-col items-center justify-center`}>
         <h1 className='text-white text-center p-8 text-xl lg:text-4xl font-bold'> Upload your images below to get started</h1>
-        
-        <div className="bg-neutral-900 min-h-screen flex items-center justify-center font-sans">
-             <div className="flex flex-col lg:flex-row gap-8 mb-12 items-start justify-center max-w-7xl mx-auto p-4">
-                <ImageUpload 
-                    id="image1-input"
-                    title="First Image"
-                    preview={preview1}
-                    onImageChange={handleImage1Change}
-                />
-                <ImageUpload
-                    id="image2-input"
-                    title="Second Image"
-                    preview={preview2}
-                    onImageChange={handleImage2Change}
-                />
-            </div>
+
+        <div className="flex items-center justify-center font-sans">
+          <div className="flex flex-col lg:flex-row gap-8 mb-12 items-start justify-center max-w-7xl mx-auto p-4">
+            <ImageUpload
+              id="image1-input"
+              title="First Image"
+              preview={preview1}
+              onImageChange={handleImage1Change}
+            />
+            <ImageUpload
+              id="image2-input"
+              title="Second Image"
+              preview={preview2}
+              onImageChange={handleImage2Change}
+            />
+          </div>
         </div>
         {/* Stitch Button */}
         <div className="text-center mb-12">
@@ -304,8 +300,15 @@ function App() {
           >
             {isProcessing ? (
               <>
-                <div className="animate-spin cursor-not-allowed rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                Processing...
+                <div class="flex flex-row gap-2">
+                  <div class="w-4 h-4 rounded-full bg-red-500 animate-bounce"></div>
+                  <div
+                    class="w-4 h-4 rounded-full bg-red-500 animate-bounce [animation-delay:-.3s]"
+                  ></div>
+                  <div
+                    class="w-4 h-4 rounded-full bg-red-500 animate-bounce [animation-delay:-.5s]"
+                  ></div>
+                </div>
               </>
             ) : (
               <>
@@ -314,12 +317,8 @@ function App() {
               </>
             )}
           </button>
-          {/* {resultImage && (
-          <div>
-            <h3>Stitched Image:</h3>
-            <img src={resultImage} className='h-48' alt="Stitched Result" />
-          </div>
-        )} */}
+
+
         </div>
         <div className='flex items-center justify-center'>
           {resultImage && (
