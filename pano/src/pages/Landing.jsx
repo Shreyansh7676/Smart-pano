@@ -273,85 +273,108 @@ function App() {
 
       {/* Upload Section */}
       <section id="upload" className={`py-20 bg-neutral-950 flex flex-col items-center justify-center`}>
-        <h1 className='text-white text-center p-8 text-xl lg:text-4xl font-bold'> Upload your images below to get started</h1>
+        <AnimatedContent
 
-        <div className="flex items-center justify-center font-sans">
-          <div className="flex flex-col lg:flex-row gap-8 mb-12 items-start justify-center max-w-7xl mx-auto p-4">
-            <ImageUpload
-              id="image1-input"
-              title="First Image"
-              preview={preview1}
-              onImageChange={handleImage1Change}
-            />
-            <ImageUpload
-              id="image2-input"
-              title="Second Image"
-              preview={preview2}
-              onImageChange={handleImage2Change}
-            />
+          distance={100}
+
+          direction="vertical"
+
+          reverse={false}
+
+          duration={1.6}
+
+          ease="power3.out"
+
+          initialOpacity={0}
+
+          animateOpacity
+
+          scale={1.0}
+
+          threshold={0.2}
+
+          delay={0}
+
+        >
+          <h1 className='text-white text-center p-8 text-xl lg:text-4xl font-bold'> Upload your images below to get started</h1>
+
+          <div className="flex items-center justify-center font-sans">
+            <div className="flex flex-col lg:flex-row gap-8 mb-12 items-start justify-center max-w-7xl mx-auto p-4">
+              <ImageUpload
+                id="image1-input"
+                title="First Image"
+                preview={preview1}
+                onImageChange={handleImage1Change}
+              />
+              <ImageUpload
+                id="image2-input"
+                title="Second Image"
+                preview={preview2}
+                onImageChange={handleImage2Change}
+              />
+            </div>
           </div>
-        </div>
-        {/* Stitch Button */}
-        <div className="text-center mb-12">
-          <button
-            onClick={handleSubmit}
-            disabled={!image1 || !image2 || isProcessing}
-            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-pink-600 to-pink-900 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200"
-          >
-            {isProcessing ? (
-              <>
-                <div class="flex flex-row gap-2">
-                  <div class="w-4 h-4 rounded-full bg-red-500 animate-bounce"></div>
-                  <div
-                    class="w-4 h-4 rounded-full bg-red-500 animate-bounce [animation-delay:-.3s]"
-                  ></div>
-                  <div
-                    class="w-4 h-4 rounded-full bg-red-500 animate-bounce [animation-delay:-.5s]"
-                  ></div>
-                </div>
-              </>
-            ) : (
-              <>
-                <Zap className="w-5 h-5 mr-3" />
-                Stitch Images
-              </>
-            )}
-          </button>
+          {/* Stitch Button */}
+          <div className="text-center mb-12">
+            <button
+              onClick={handleSubmit}
+              disabled={!image1 || !image2 || isProcessing}
+              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-pink-600 to-pink-900 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200"
+            >
+              {isProcessing ? (
+                <>
+                  <div class="flex flex-row gap-2">
+                    <div class="w-4 h-4 rounded-full bg-red-500 animate-bounce"></div>
+                    <div
+                      class="w-4 h-4 rounded-full bg-red-500 animate-bounce [animation-delay:-.3s]"
+                    ></div>
+                    <div
+                      class="w-4 h-4 rounded-full bg-red-500 animate-bounce [animation-delay:-.5s]"
+                    ></div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-5 h-5 mr-3" />
+                  Stitch Images
+                </>
+              )}
+            </button>
 
 
-        </div>
-        <div className='flex items-center justify-center'>
-          {resultImage && (
-            <div className="bg-neutral-900 rounded-2xl shadow-xl border border-pink-700 overflow-hidden animate-fade-in">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold text-white flex items-center">
-                    <ImageIcon className="w-6 h-6 mr-3 text-pink-600" />
-                    Stitched Result
-                  </h3>
-                  <button
-                    className="inline-flex items-center px-4 py-2 bg-pink-600 text-white font-medium rounded-lg hover:bg-pink-700 transition-colors duration-200"
-                    onClick={downloadImage}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
-                  </button>
-                </div>
+          </div>
+          <div className='flex items-center justify-center'>
+            {resultImage && (
+              <div className="bg-neutral-900 rounded-2xl shadow-xl border border-pink-700 overflow-hidden animate-fade-in">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-2xl font-bold text-white flex items-center">
+                      <ImageIcon className="w-6 h-6 mr-3 text-pink-600" />
+                      Stitched Result
+                    </h3>
+                    <button
+                      className="inline-flex items-center px-4 py-2 bg-pink-600 text-white font-medium rounded-lg hover:bg-pink-700 transition-colors duration-200"
+                      onClick={downloadImage}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </button>
+                  </div>
 
-                <div className="rounded-xl overflow-hidden shadow-lg">
-                  <img
-                    src={resultImage}
-                    ref={domEl}
-                    alt="Stitched Result"
-                    className="w-full h-auto max-h-96 object-contain bg-gray-50"
-                  />
+                  <div className="rounded-xl overflow-hidden shadow-lg">
+                    <img
+                      src={resultImage}
+                      ref={domEl}
+                      alt="Stitched Result"
+                      className="w-full h-auto max-h-96 object-contain bg-gray-50"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-        {/* Result Section */}
-
+            )}
+          </div>
+          {/* Result Section */}
+        </AnimatedContent>
       </section>
 
       {/* Benefits Section */}
