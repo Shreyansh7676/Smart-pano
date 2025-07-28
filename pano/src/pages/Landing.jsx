@@ -7,6 +7,8 @@ import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image';
 import AnimatedContent from '../components/AnimatedContent.jsx';
 import WhyChoose from './WhyChoose.jsx';
 import HowItWorks from './HowItWorks.jsx';
+import Benefits from './Benefits.jsx';
+import Footer from './Footer.jsx';
 
 
 
@@ -354,78 +356,10 @@ function App() {
       </section>
 
       {/* Benefits Section */}
-      <section className={`py-20 bg-black`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className={`text-4xl font-bold mb-6 text-white`}>
-                Professional Results,
-                <span className="block text-pink-600">Zero Hassle</span>
-              </h2>
-              <p className={`text-xl mb-8 text-gray-300 `}>
-                Whether you're a photographer, traveler, or just love capturing memories,
-                SmartPano makes it easy to create stunning panoramic images that tell your story.
-              </p>
-
-              <div className="space-y-4">
-                {[
-                  "Automatic image alignment and blending",
-                  "Support for all image formats",
-                  "High-resolution output up to 8K",
-                  "No watermarks or limits",
-                  "Instant processing with AI acceleration"
-                ].map((benefit, index) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center bg-green-600`}>
-                      <Check className={`w-4 h-4 text-white `} />
-                    </div>
-                    <span className="text-gray-300">{benefit}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="border border-pink-700 rounded-2xl p-8 text-white">
-                <div className="mb-6">
-                  <h3 className="text-2xl font-bold mb-2">Ready to get started ?</h3>
-                  <p className="text-blue-100">
-                    Join thousands of users creating amazing panoramas every day.
-                  </p>
-                </div>
-                <a
-                  href="#upload"
-                  className="bg-gradient-to-br from-pink-600 to-pink-950 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 inline-block"
-                >
-                  Start Creating Now
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <Benefits />
 
       {/* Footer */}
-      <footer className={`py-12 bg-neutral-950  text-white`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <div className="w-10 h-10  rounded-xl flex items-center justify-center">
-                <Camera className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold">SmartPano</span>
-            </div>
-            <p className="text-gray-400 mb-8">
-              Transform your images into stunning panoramas with the power of AI
-            </p>
-            <div className="border-t border-gray-800 pt-8">
-              <p className="text-gray-500">
-                © 2024 SmartPano. All rights reserved. Built with ❤️ for photographers and creators.
-              </p>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
