@@ -26,7 +26,7 @@ const ImageUploader = () => {
         formData.append('image2', image2);
 
         try {
-            const response = await fetch('http://127.0.0.1:5000/stitch', {
+            const response = await fetch('https://smart-pano-1.onrender.com/stitch', {
                 method: 'POST',
                 body: formData,
             });
