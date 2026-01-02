@@ -6,7 +6,12 @@ from flask_cors import CORS
 # from io import BytesIO
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173", "http://localhost:5174", "https://smart-pano.vercel.app/", "https://smart-pano-1.onrender.com/"])
+CORS(app, 
+     origins=["http://localhost:5173", "http://localhost:5174", "https://smart-pano.vercel.app"],
+     methods=["GET", "POST", "OPTIONS"],
+     allow_headers=["Content-Type"],
+     supports_credentials=True
+)
 
 # Step 2: Feature Matching using ORB
 def feature_matching(img1, img2):
