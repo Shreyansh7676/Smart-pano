@@ -1,9 +1,9 @@
 import cv2  
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
-from io import BytesIO
+# from io import BytesIO
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173", "http://localhost:5174", "https://smart-pano.vercel.app/"])
