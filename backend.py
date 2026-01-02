@@ -1,13 +1,12 @@
 import cv2  
 import numpy as np
 import matplotlib.pyplot as plt
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify, send_file
-from werkzeug.utils import secure_filename
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
-import os
+from io import BytesIO
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173", "http://localhost:5174"])
+CORS(app, origins=["http://localhost:5173", "http://localhost:5174", "https://smart-pano.vercel.app/"])
 
 # Step 2: Feature Matching using ORB
 def feature_matching(img1, img2):
@@ -40,7 +39,7 @@ def feature_matching(img1, img2):
 #     return cropped
 
 
-# Step 3: Image Stitching 
+# Step 3: Image Stitching (in-memory, no file storage)
 def stitch_images(img1, img2, kp1, kp2, matches):
     # Extract the coordinates of the matched keypoints
     src_pts = np.float32([kp1[m.queryIdx].pt for m in matches]).reshape(-1, 1, 2)
@@ -59,12 +58,8 @@ def stitch_images(img1, img2, kp1, kp2, matches):
     # Place the second image in the stitched image
     img1_warped[0:h2, 0:w2] = img2
 
-    result= img1_warped
-    output_dir="output"
-    os.makedirs(output_dir, exist_ok=True)  # ✅ Create output folder if missing
-    output_path = os.path.join(output_dir, "result.jpg")
-    cv2.imwrite(output_path, result) # Save the stitched image
-    return output_path
+    # Return the stitched image directly (no file storage)
+    return img1_warped
 
 
 @app.route('/stitch',methods=['GET', 'POST'])
@@ -73,19 +68,20 @@ def stitch():
 
     if request.method == 'GET':
         return jsonify({"error": "GET not allowed, use POST"}), 405
-    img1_file=request.files['image1']
-    img2_file=request.files['image2']
+    
+    img1_file = request.files['image1']
+    img2_file = request.files['image2']
 
-    img1_path='temp1.jpg'
-    img2_path='temp2.jpg'
-
-    img1_file.save(img1_path)
-    img2_file.save(img2_path)
-
-    img1 = cv2.imread(img1_path)
-    img2 = cv2.imread(img2_path)
+    # Read images directly from memory (no file storage)
+    img1_bytes = np.frombuffer(img1_file.read(), np.uint8)
+    img2_bytes = np.frombuffer(img2_file.read(), np.uint8)
+    
+    img1 = cv2.imdecode(img1_bytes, cv2.IMREAD_COLOR)
+    img2 = cv2.imdecode(img2_bytes, cv2.IMREAD_COLOR)
+    
     if img1 is None or img2 is None:
         return jsonify({"error": "Could not read one of the images"}), 400
+    
     img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2YCrCb)
     img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2YCrCb)
 
@@ -94,10 +90,17 @@ def stitch():
 
     img1 = cv2.cvtColor(img1, cv2.COLOR_YCrCb2BGR)
     img2 = cv2.cvtColor(img2, cv2.COLOR_YCrCb2BGR)
+    
     kp1, kp2, matches = feature_matching(img1, img2)
-    result_path = stitch_images(img1, img2, kp1, kp2, matches)
+    result_image = stitch_images(img1, img2, kp1, kp2, matches)
 
-    return send_file(result_path, mimetype='image/jpeg')
+    # Encode result image to JPEG bytes in memory
+    success, encoded_image = cv2.imencode('.jpg', result_image)
+    if not success:
+        return jsonify({"error": "Failed to encode result image"}), 500
+    
+    # Return image directly from memory
+    return Response(encoded_image.tobytes(), mimetype='image/jpeg')
 
 if __name__ == '__main__':
     app.run(debug=True)
