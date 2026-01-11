@@ -1,51 +1,14 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, Zap, Download, ArrowRight, Camera, Sparkles, ImageIcon } from 'lucide-react';
 import { toPng } from 'html-to-image';
-import DarkVeil from '../components/DarkVeil.jsx';
 import AnimatedContent from '../components/AnimatedContent.jsx';
 import WhyChoose from './WhyChoose.jsx';
 import HowItWorks from './HowItWorks.jsx';
 import Benefits from './Benefits.jsx';
 import Footer from './Footer.jsx';
-
+import ImageUpload from './ImageUpload.jsx';
 // Moved outside main component to prevent re-creation on every render
-const ImageUpload = React.memo(({ id, title, preview, onImageChange }) => (
-  <div className="bg-neutral-950 w-full max-w-2xl rounded-2xl shadow-xl border border-pink-700 overflow-hidden">
-    <div className="p-6">
-      <h3 className="text-lg font-semibold text-gray-300 mb-4 flex items-center">
-        <Upload className="w-5 h-5 mr-2 text-pink-600" />
-        {title}
-      </h3>
-      <div className="relative">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={onImageChange}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-          id={id}
-        />
-        <label
-          htmlFor={id}
-          className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-pink-600 hover:bg-neutral-800/50 transition-all duration-300 group"
-        >
-          {preview ? (
-            <img
-              src={preview}
-              alt={`${title} Preview`}
-              className="w-full h-full object-cover rounded-xl"
-            />
-          ) : (
-            <div className="text-center">
-              <Upload className="w-12 h-12 text-pink-700 group-hover:text-pink-600 mb-4 mx-auto transition-colors" />
-              <p className="text-gray-400 font-medium mb-2">Drop your image here</p>
-              <p className="text-sm text-gray-400">PNG, JPG, GIF up to 10MB</p>
-            </div>
-          )}
-        </label>
-      </div>
-    </div>
-  </div>
-));
+
 
 ImageUpload.displayName = 'ImageUpload';
 
@@ -111,7 +74,7 @@ function App() {
     formData.append('image2', image2);
 
     try {
-      const response = await fetch('https://smart-pano-1.onrender.com/stitch', {
+      const response = await fetch('http://127.0.0.1:5000/stitch', {
         method: 'POST',
         body: formData,
       });
@@ -149,11 +112,11 @@ function App() {
       {/* Hero Section */}
       <div className="w-full min-h-screen relative">
         <div className="absolute inset-0 z-0">
-          <DarkVeil />
+          {/* <DarkVeil /> */}
         </div>
 
         {/* Navigation */}
-        <nav className="fixed top-6 left-1/2 transform -translate-x-1/2 w-11/12 md:w-1/2 z-20 bg-black/40 backdrop-blur-lg rounded-full shadow-lg border border-gray-200/50">
+        {/* <nav className="fixed top-6 left-1/2 transform -translate-x-1/2 w-11/12 md:w-1/2 z-20 bg-black/40 backdrop-blur-lg rounded-full shadow-lg border border-gray-200/50">
           <div className="flex items-center justify-between px-4 md:px-6 py-3">
             <div className="flex items-center space-x-2">
               <Camera className="w-7 h-7 text-white" />
@@ -173,7 +136,7 @@ function App() {
               Get Started
             </a>
           </div>
-        </nav>
+        </nav> */}
 
         {/* Hero Content */}
         <AnimatedContent
@@ -209,7 +172,7 @@ function App() {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <a
                     href="#upload"
-                    className="bg-gradient-to-br from-pink-600 to-rose-950 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center"
+                    className="bg-gradient-to-br from-pink-600 to-rose-950 text-white px-6 py-2 rounded-xl text-md font-semibold hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center"
                   >
                     Start Creating Now
                     <ArrowRight className="w-5 h-5 ml-2" />
@@ -256,6 +219,11 @@ function App() {
                 preview={preview1}
                 onImageChange={handleImage1Change}
               />
+              {/* <input type="image" 
+              id="image1-input"
+              title='Upload your left vision image'
+              preview={preview1}
+              /> */}
               <ImageUpload
                 id="image2-input"
                 title="Upload your right vision image"
@@ -311,7 +279,7 @@ function App() {
                       src={resultImage}
                       ref={resultRef}
                       alt="Stitched Result"
-                      className="w-full h-auto max-h-96 object-contain bg-gray-900"
+                      className="w-full h-auto max-h-96 object-contain bg-gray-900 "
                     />
                   </div>
                 </div>
