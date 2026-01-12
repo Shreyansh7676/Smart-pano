@@ -5,6 +5,7 @@ from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from io import BytesIO
 from PIL import Image
+import datetime
 
 app = Flask(__name__)
 CORS(app, 
@@ -78,6 +79,13 @@ def stitch_images(img1, img2, kp1, kp2, matches):
     # Return the stitched image directly (no file storage)
     return img1_warped
 
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        'status': 'OK',
+        'message': 'Your API is running',
+        'timestamp': datetime.datetime.utcnow().isoformat()
+    })
 
 @app.route('/stitch',methods=['GET', 'POST'])
 def stitch():
