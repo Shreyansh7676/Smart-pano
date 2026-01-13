@@ -1,10 +1,11 @@
 import React from 'react'
 import { Upload } from 'lucide-react';
+
 const ImageUpload = React.memo(({ id, title, preview, onImageChange }) => (
-  <div className="bg-neutral-950 w-full max-w-2xl rounded-2xl shadow-xl border border-pink-700 overflow-hidden">
+  <div className="opacity-60 bg-orange-700/5 hover:opacity-100 transition-all ease-in duration-200 grayscale-100 hover:grayscale-0 w-full max-w-3xl rounded-2xl shadow-xl border border-orange-950 overflow-hidden hover:scale-105">
     <div className="p-6">
       <h3 className="text-lg font-semibold text-gray-300 mb-4 flex items-center">
-        <Upload className="w-5 h-5 mr-2 text-pink-600" />
+        <Upload className="w-5 h-5 mr-2 text-neutral-400" />
         {title}
       </h3>
       <div className="relative">
@@ -17,7 +18,7 @@ const ImageUpload = React.memo(({ id, title, preview, onImageChange }) => (
         />
         <label
           htmlFor={id}
-          className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-pink-600 hover:bg-neutral-800/50 transition-all duration-300 group"
+          className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer  transition-all duration-300 group"
         >
           {preview ? (
             <img
@@ -30,9 +31,9 @@ const ImageUpload = React.memo(({ id, title, preview, onImageChange }) => (
             // </div>
           ) : (
             <div className="text-center">
-              <Upload className="w-12 h-12 text-pink-700 group-hover:text-pink-600 mb-4 mx-auto transition-colors" />
+              <Upload className="w-12 h-12 text-orange-700 mb-4 mx-auto transition-colors" />
               <p className="text-gray-400 font-medium mb-2">Drop your image here</p>
-              <p className="text-sm text-gray-400">PNG, JPG, GIF up to 10MB</p>
+              <p className="text-sm text-gray-400">PNG, JPG up to 10MB</p>
             </div>
           )}
         </label>
