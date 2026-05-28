@@ -14,7 +14,7 @@ import datetime
 MAX_FILE_SIZE_MB  = 10                       # Max size per uploaded image
 MAX_FILE_SIZE     = MAX_FILE_SIZE_MB * 1024 * 1024   # in bytes
 MAX_IMAGE_DIM     = 4000                     # Max width or height in pixels
-RATE_LIMIT        = "5 per minute"           # Stitching rate limit per IP
+RATE_LIMIT        = "2 per minute"           # Stitching rate limit per IP
 
 # ---------------------------------------------------------------------------
 # App Setup
@@ -166,7 +166,7 @@ def health_check():
     })
 
 @app.route('/stitch', methods=['GET', 'POST'])
-@limiter.limit(RATE_LIMIT)                   # 5 per minute per IP
+@limiter.limit(RATE_LIMIT)                   # 2 per minute per IP
 def stitch():
     logger.info("🔥 Received a %s request at /stitch", request.method)
 
