@@ -1,13 +1,17 @@
-import cv2  
-import numpy as np
 import os
 import logging
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from redis import Redis
+from redis.exceptions import ConnectionError as RedisConnectionError
+from rq import Queue
+from rq.job import Job
 import datetime
 
+from stitch_jobs import decode_image_from_bytes, stitch_from_bytes, stitch_from_images
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
@@ -15,6 +19,10 @@ MAX_FILE_SIZE_MB  = 10                       # Max size per uploaded image
 MAX_FILE_SIZE     = MAX_FILE_SIZE_MB * 1024 * 1024   # in bytes
 MAX_IMAGE_DIM     = 4000                     # Max width or height in pixels
 RATE_LIMIT        = "2 per minute"           # Stitching rate limit per IP
+RQ_QUEUE_NAME     = "stitch"                # RQ queue name for async stitching
+RQ_RESULT_TTL_SEC = 3600                     # Keep completed job results for 1 hour
+RQ_FAILURE_TTL_SEC = 3600                    # Keep failed job info for 1 hour
+RQ_JOB_TIMEOUT_SEC = 120                     # Max seconds per stitch job
 
 # ---------------------------------------------------------------------------
 # App Setup
@@ -37,7 +45,16 @@ logger = logging.getLogger(__name__)
 # flask-limiter uses Redis as its backend to track request counts.
 # On Render, set the REDIS_URL env var to your Redis instance URL.
 # Locally, it falls back to in-memory storage if Redis is unavailable.
+load_dotenv()
 REDIS_URL = os.environ.get("REDIS_URL", None)
+
+def get_redis_connection():
+    if REDIS_URL:
+        return Redis.from_url(REDIS_URL)
+    return Redis()
+
+redis_conn = get_redis_connection()
+rq_queue = Queue(RQ_QUEUE_NAME, connection=redis_conn)
 
 limiter = Limiter(
     app=app,
@@ -59,86 +76,31 @@ def ratelimit_handler(e):
 # ---------------------------------------------------------------------------
 # Helper: Validate uploaded image
 # ---------------------------------------------------------------------------
-def validate_image(file_storage, label="image"):
-    """Validate file size and image dimensions. Returns (cv2_image, None) or (None, error_response)."""
-    
+def read_and_validate_image(file_storage, label="image"):
+    """Validate file size and image dimensions. Returns (cv2_image, raw_bytes, None) or (None, None, error_response)."""
+
     # 1) Check file size
     file_storage.seek(0, 2)          # Seek to end
     size = file_storage.tell()       # Get position = file size
     file_storage.seek(0)             # Reset to beginning
-    
+
     if size > MAX_FILE_SIZE:
-        return None, jsonify({
+        return None, None, jsonify({
             "error": f"{label} is too large ({size / 1024 / 1024:.1f} MB). "
                      f"Maximum allowed is {MAX_FILE_SIZE_MB} MB."
         }), 400
-    
+
     if size == 0:
-        return None, jsonify({"error": f"{label} is empty."}), 400
+        return None, None, jsonify({"error": f"{label} is empty."}), 400
 
     # 2) Decode image
-    raw_bytes = np.frombuffer(file_storage.read(), np.uint8)
-    img = cv2.imdecode(raw_bytes, cv2.IMREAD_COLOR)
-    
-    if img is None:
-        return None, jsonify({"error": f"Could not decode {label}. Is it a valid image?"}), 400
-    
-    # 3) Check dimensions
-    h, w = img.shape[:2]
-    if h > MAX_IMAGE_DIM or w > MAX_IMAGE_DIM:
-        return None, jsonify({
-            "error": f"{label} dimensions ({w}x{h}) exceed the maximum "
-                     f"allowed ({MAX_IMAGE_DIM}x{MAX_IMAGE_DIM})."
-        }), 400
-    
-    return img, None
+    raw_bytes = file_storage.read()
+    try:
+        img = decode_image_from_bytes(raw_bytes, label, MAX_IMAGE_DIM)
+    except ValueError as exc:
+        return None, None, jsonify({"error": str(exc)}), 400
 
-# ---------------------------------------------------------------------------
-# Core CV Logic (unchanged)
-# ---------------------------------------------------------------------------
-
-# Step 2: Feature Matching using ORB
-def feature_matching(img1, img2):
-    orb = cv2.ORB_create()  # Initiating ORB detector
-    #ORB: We use ORB (Oriented FAST and Rotated BRIEF) to detect features and compute descriptors.
-
-    kp1, des1 = orb.detectAndCompute(img1, None)
-    kp2, des2 = orb.detectAndCompute(img2, None)
-
-    # Creating a BFMatcher object with default params
-    #bf: Brute Force
-    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-
-    # Match descriptors
-    matches = bf.match(des1, des2)
-
-    # Sort matches based on their distance (best matches first)
-    matches = sorted(matches, key=lambda x: x.distance)
-
-    return kp1, kp2, matches
-
-
-# Step 3: Image Stitching (in-memory, no file storage)
-def stitch_images(img1, img2, kp1, kp2, matches):
-    # Extract the coordinates of the matched keypoints
-    src_pts = np.float32([kp1[m.queryIdx].pt for m in matches]).reshape(-1, 1, 2)
-    dst_pts = np.float32([kp2[m.trainIdx].pt for m in matches]).reshape(-1, 1, 2)
-
-    # Compute homography matrix
-    H, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-
-    # Get the dimensions of the first image
-    h1, w1 = img1.shape[:2]
-    h2, w2 = img2.shape[:2]
-
-    # Warp the first image with the homography matrix
-    img1_warped = cv2.warpPerspective(img1, H, (w1 + w2, max(h1, h2)))
-
-    # Place the second image in the stitched image
-    img1_warped[0:h2, 0:w2] = img2
-
-    # Return the stitched image directly (no file storage)
-    return img1_warped
+    return img, raw_bytes, None
 
 # ---------------------------------------------------------------------------
 # Routes
@@ -152,7 +114,10 @@ def home():
         "status": "ok",
         "message": "SmartPanorama API is running",
         "endpoints": {
-            "POST /stitch": "Send 'image1' and 'image2' to stitch images"
+            "POST /stitch": "Send 'image1' and 'image2' to stitch images",
+            "POST /stitch/async": "Enqueue stitching job, returns job_id",
+            "GET /stitch/status/<job_id>": "Check async job status",
+            "GET /stitch/result/<job_id>": "Fetch stitched image when ready"
         }
     })
 
@@ -177,34 +142,83 @@ def stitch():
     if 'image1' not in request.files or 'image2' not in request.files:
         return jsonify({"error": "Both 'image1' and 'image2' files are required."}), 400
 
-    img1, err1 = validate_image(request.files['image1'], "image1")
+    img1, img1_bytes, err1 = read_and_validate_image(request.files['image1'], "image1")
     if err1:
         return err1
-    
-    img2, err2 = validate_image(request.files['image2'], "image2")
+
+    img2, img2_bytes, err2 = read_and_validate_image(request.files['image2'], "image2")
     if err2:
         return err2
-    
-    # --- Histogram equalization ---
-    img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2YCrCb)
-    img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2YCrCb)
 
-    img1[..., 0] = cv2.equalizeHist(img1[..., 0])
-    img2[..., 0] = cv2.equalizeHist(img2[..., 0])
+    try:
+        result_bytes = stitch_from_images(img1, img2)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 500
 
-    img1 = cv2.cvtColor(img1, cv2.COLOR_YCrCb2BGR)
-    img2 = cv2.cvtColor(img2, cv2.COLOR_YCrCb2BGR)
-    
-    # --- Stitch ---
-    kp1, kp2, matches = feature_matching(img1, img2)
-    result_image = stitch_images(img1, img2, kp1, kp2, matches)
+    return Response(result_bytes, mimetype='image/jpeg')
 
-    # Encode result image to JPEG bytes in memory
-    success, encoded_image = cv2.imencode('.jpg', result_image)
-    if not success:
-        return jsonify({"error": "Failed to encode result image"}), 500
-    
-    return Response(encoded_image.tobytes(), mimetype='image/jpeg')
+
+@app.route('/stitch/async', methods=['POST'])
+@limiter.limit(RATE_LIMIT)                   # 2 per minute per IP
+def stitch_async():
+    logger.info("🔥 Received a %s request at /stitch/async", request.method)
+
+    if 'image1' not in request.files or 'image2' not in request.files:
+        return jsonify({"error": "Both 'image1' and 'image2' files are required."}), 400
+
+    _, img1_bytes, err1 = read_and_validate_image(request.files['image1'], "image1")
+    if err1:
+        return err1
+
+    _, img2_bytes, err2 = read_and_validate_image(request.files['image2'], "image2")
+    if err2:
+        return err2
+
+    try:
+        job = rq_queue.enqueue(
+            stitch_from_bytes,
+            img1_bytes,
+            img2_bytes,
+            MAX_IMAGE_DIM,
+            result_ttl=RQ_RESULT_TTL_SEC,
+            failure_ttl=RQ_FAILURE_TTL_SEC,
+            job_timeout=RQ_JOB_TIMEOUT_SEC,
+        )
+        logger.info("Enqueued stitch job %s on queue %s", job.id, RQ_QUEUE_NAME)
+    except RedisConnectionError:
+        return jsonify({"error": "Redis is not available for background jobs"}), 503
+
+    return jsonify({"job_id": job.id, "status": job.get_status()}), 202
+
+
+@app.route('/stitch/status/<job_id>', methods=['GET'])
+def stitch_status(job_id):
+    try:
+        job = Job.fetch(job_id, connection=redis_conn)
+    except Exception:
+        return jsonify({"error": "Job not found"}), 404
+
+    return jsonify({"job_id": job.id, "status": job.get_status()}), 200
+
+
+@app.route('/stitch/result/<job_id>', methods=['GET'])
+def stitch_result(job_id):
+    try:
+        job = Job.fetch(job_id, connection=redis_conn)
+    except Exception:
+        return jsonify({"error": "Job not found"}), 404
+
+    if job.is_failed:
+        return jsonify({"error": "Job failed", "details": str(job.exc_info)}), 500
+
+    if not job.is_finished:
+        return jsonify({"status": job.get_status()}), 202
+
+    result_bytes = job.result
+    if not result_bytes:
+        return jsonify({"error": "Job finished without a result"}), 500
+
+    return Response(result_bytes, mimetype='image/jpeg')
 
 if __name__ == '__main__':
     app.run(debug=True)
