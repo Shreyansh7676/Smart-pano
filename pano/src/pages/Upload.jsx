@@ -85,7 +85,7 @@ const Uploader = () => {
         while (attempt < maxAttempts) {
             attempt += 1;
 
-            const resultResponse = await fetch(`http://127.0.0.1:5000/stitch/result/${jobId}`);
+            const resultResponse = await fetch(`https://smart-pano-1.onrender.com/stitch/result/${jobId}`);
 
             if (resultResponse.status === 202) {
                 await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
