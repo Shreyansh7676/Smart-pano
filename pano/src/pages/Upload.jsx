@@ -64,49 +64,20 @@ const Uploader = () => {
         formData.append('image2', image2);
 
         try {
-            const enqueueResponse = await fetch('http://127.0.0.1:5000/stitch/async', {
+            const response = await fetch('https://smart-pano-1.onrender.com/stitch/async', {
                 method: 'POST',
                 body: formData,
             });
 
-            if (!enqueueResponse.ok) {
-                throw new Error(`Server error: ${enqueueResponse.status}`);
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
             }
 
-            const { job_id: jobId } = await enqueueResponse.json();
-            if (!jobId) {
-                throw new Error('No job_id returned from server');
-            }
-
-            const pollIntervalMs = 1500;
-            const maxAttempts = 120; // ~3 minutes
-            let attempt = 0;
-
-            while (attempt < maxAttempts) {
-                attempt += 1;
-
-                const resultResponse = await fetch(`http://127.0.0.1:5000/stitch/result/${jobId}`);
-
-                if (resultResponse.status === 202) {
-                    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
-                    continue;
-                }
-
-                if (!resultResponse.ok) {
-                    const errorPayload = await resultResponse.json().catch(() => null);
-                    const serverMessage = errorPayload?.error || `Server error: ${resultResponse.status}`;
-                    throw new Error(serverMessage);
-                }
-
-                const blob = await resultResponse.blob();
-                setResultImage(URL.createObjectURL(blob));
-                return;
-            }
-
-            throw new Error('Timed out waiting for stitched image');
+            const blob = await response.blob();
+            setResultImage(URL.createObjectURL(blob));
         } catch (err) {
             console.error("Failed to stitch images:", err.message);
-            setError(err.message || "Image stitching failed. Please try again.");
+            setError("Image stitching failed. Please try again.");
         } finally {
             setIsProcessing(false);
         }
