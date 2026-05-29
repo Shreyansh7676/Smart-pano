@@ -53,35 +53,64 @@ const Uploader = () => {
     }, []);
 
     const handleSubmit = useCallback(async (e) => {
-        e.preventDefault();
-        if (!image1 || !image2) return;
+    e.preventDefault();
+    if (!image1 || !image2) return;
 
-        setIsProcessing(true);
-        setError(null);
+    setIsProcessing(true);
+    setError(null);
 
-        const formData = new FormData();
-        formData.append('image1', image1);
-        formData.append('image2', image2);
+    const formData = new FormData();
+    formData.append('image1', image1);
+    formData.append('image2', image2);
 
-        try {
-            const response = await fetch('https://smart-pano-1.onrender.com/stitch/async', {
-                method: 'POST',
-                body: formData,
-            });
+    try {
+        const enqueueResponse = await fetch('http://127.0.0.1:5000/stitch/async', {
+            method: 'POST',
+            body: formData,
+        });
 
-            if (!response.ok) {
-                throw new Error(`Server error: ${response.status}`);
+        if (!enqueueResponse.ok) {
+            throw new Error(`Server error: ${enqueueResponse.status}`);
+        }
+
+        const { job_id: jobId } = await enqueueResponse.json();
+        if (!jobId) {
+            throw new Error('No job_id returned from server');
+        }
+
+        const pollIntervalMs = 1500;
+        const maxAttempts = 120; // ~3 minutes
+        let attempt = 0;
+
+        while (attempt < maxAttempts) {
+            attempt += 1;
+
+            const resultResponse = await fetch(`http://127.0.0.1:5000/stitch/result/${jobId}`);
+
+            if (resultResponse.status === 202) {
+                await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+                continue;
             }
 
-            const blob = await response.blob();
+            if (!resultResponse.ok) {
+                const errorPayload = await resultResponse.json().catch(() => null);
+                const serverMessage = errorPayload?.error || `Server error: ${resultResponse.status}`;
+                throw new Error(serverMessage);
+            }
+
+            const blob = await resultResponse.blob();
             setResultImage(URL.createObjectURL(blob));
-        } catch (err) {
-            console.error("Failed to stitch images:", err.message);
-            setError("Image stitching failed. Please try again.");
-        } finally {
-            setIsProcessing(false);
+            return;
         }
-    }, [image1, image2]);
+
+        throw new Error('Timed out waiting for stitched image');
+    } catch (err) {
+        console.error("Failed to stitch images:", err.message);
+        setError(err.message || "Image stitching failed. Please try again.");
+    } finally {
+        setIsProcessing(false);
+    }
+}, [image1, image2]);
 
     const downloadImage = useCallback(async () => {
         if (!resultRef.current) return;
